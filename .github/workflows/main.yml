@@ -1,0 +1,86 @@
+name: Re
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每 3 小时运行一次
+    - cron: '0 */3 * * *'
+
+jobs:
+  run_fgh_renew:
+    runs-on: ubuntu-latest
+    
+    # 设置全局时区为香港时间
+    env:
+      TZ: Asia/Hong_Kong
+
+    steps:
+      - name: 📥 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 🐍 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 🌐 启动 Xray 代理
+        env:
+          V2RAY_CONFIG: ${{ secrets.V2RAY_CONFIG }}
+        run: |
+          echo "⬇️ 正在下载 Xray-core..."
+          wget -q https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip
+          unzip -q Xray-linux-64.zip -d xray_bin
+          
+          echo "📝 正在写入节点配置..."
+          echo "$V2RAY_CONFIG" > xray_bin/config.json
+          
+          echo "🚀 正在后台启动 Xray..."
+          cd xray_bin
+          nohup ./xray run -c config.json > xray.log 2>&1 &
+          cd ..
+          
+          echo "⏳ 等待 Xray 核心启动..."
+          sleep 5
+          
+          echo "🌐 测试代理连通性..."
+          curl -x http://127.0.0.1:10808 -I https://www.google.com/generate_204 || echo "⚠️ 代理测试未通过，请检查 V2RAY_CONFIG"
+
+      - name: 🛠️ 安装系统依赖 (Chrome & XVFB)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            google-chrome-stable \
+            xvfb \
+            x11-utils \
+            xdotool \
+            scrot
+
+      - name: 🐍 安装 Python 依赖
+        run: |
+          pip install seleniumbase beautifulsoup4 requests
+          seleniumbase install chromedriver
+
+      - name: 🚀 运行续期脚本
+        env:
+          PYTHONIOENCODING: utf-8
+          # 核心账户与推送信息
+          FGH_ACCOUNT: ${{ secrets.FGH_ACCOUNT }}
+          TG_BOT: ${{ secrets.TG_BOT }}
+          # 🔑 注入抓包获取的 Cookie
+          FGH_COOKIE: ${{ secrets.FGH_COOKIE }}
+          # 系统级代理变量
+          http_proxy: http://127.0.0.1:10808
+          https_proxy: http://127.0.0.1:10808
+        run: |
+          # 使用 xvfb-run 模拟显示器环境运行浏览器
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python re.py
+
+      - name: 📸 上传调试截图
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshots-${{ github.run_id }}
+          path: |
+            *.png
+            xray_bin/xray.log
+          retention-days: 3
