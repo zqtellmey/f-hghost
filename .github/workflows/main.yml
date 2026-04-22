@@ -73,7 +73,7 @@ jobs:
           https_proxy: http://127.0.0.1:10808
         run: |
           # 使用 xvfb-run 模拟显示器环境运行浏览器
-          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python re.py
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python reh.py
 
       - name: 📸 上传调试截图
         if: always()
