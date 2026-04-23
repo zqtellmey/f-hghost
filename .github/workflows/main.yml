@@ -9,11 +9,10 @@ on:
 jobs:
   run_fgh_renew:
     runs-on: ubuntu-latest
-  timeout-minutes: 5  # <--- 加入这一行，强制整个任务最高只跑 5 分钟  
+    timeout-minutes: 5  # <--- 加入这一行，强制整个任务最高只跑 5 分钟  
     # 设置全局时区为香港时间
     env:
       TZ: Asia/Hong_Kong
-
     steps:
       - name: 📥 检出仓库
         uses: actions/checkout@v4
