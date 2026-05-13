@@ -159,8 +159,8 @@ jobs:
           # 🔑 注入抓包获取的 Cookie
           FGH_COOKIE: ${{ secrets.FGH_COOKIE }}
           # 系统级代理变量
-          http_proxy: http://127.0.0.1:10808
-          https_proxy: http://127.0.0.1:10808
+        #  http_proxy: http://127.0.0.1:10808
+        #  https_proxy: http://127.0.0.1:10808
         run: |
           # 使用 xvfb-run 模拟显示器环境运行浏览器
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python reh.py
