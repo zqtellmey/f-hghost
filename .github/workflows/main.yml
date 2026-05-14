@@ -3,8 +3,8 @@ name: Re
 on:
   workflow_dispatch:
   schedule:
-    # 每 3 小时运行一次
-    - cron: '0 */3 * * *'
+    # 每 2 小时运行一次
+    - cron: '0 */2 * * *'
 
 jobs:
   run_re:
